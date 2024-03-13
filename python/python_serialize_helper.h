@@ -316,7 +316,7 @@ std::vector<uint8_t> serialize(const std::string &format,
   std::vector<uint8_t> result;
   std::size_t byte_index = 0;
 
-  constexpr auto OPTIONS = alpaca::options::none;
+  constexpr auto OPTIONS = alpaca::options::default_options;
 
   std::size_t index = 0;
 

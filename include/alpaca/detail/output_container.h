@@ -31,6 +31,11 @@ static inline void append(const uint8_t &value, std::ofstream &container,
   index += 1;
 }
 
+static inline void append(const uint8_t &value, std::tuple<> &container,
+                          std::size_t &index) {
+  index += 1;
+}
+
 } // namespace detail
 
 } // namespace alpaca

@@ -72,11 +72,11 @@ type_info(
                         /// FIX needed.
     // save number of fields
     uint16_t num_fields = N;
-    to_bytes<options::none>(typeids, current_index, num_fields);
+    to_bytes<options::default_options>(typeids, current_index, num_fields);
 
     // save size of struct
     uint16_t size = sizeof(T);
-    to_bytes<options::none>(typeids, current_index, size);
+    to_bytes<options::default_options>(typeids, current_index, size);
 
     struct_visitor_map[name] = struct_visitor_map.size() + 1;
     type_info_helper<T, N, 0>(typeids, struct_visitor_map);
@@ -163,16 +163,6 @@ void to_bytes_router(const std::bitset<N> &input, Container &bytes,
 
 } // namespace detail
 
-template <typename T,
-          std::size_t N = detail::aggregate_arity<std::remove_cv_t<T>>::size(),
-          typename Container = std::vector<uint8_t>>
-std::size_t serialize(const T &s, Container &bytes) {
-  std::size_t byte_index = 0;
-  detail::serialize_helper<options::none, T, N, Container, 0>(s, bytes,
-                                                              byte_index);
-  return byte_index;
-}
-
 // overloads taking options template parameter
 
 // for std::vector and std::array
@@ -257,6 +247,46 @@ std::size_t serialize(const T &s, Container &bytes) {
   return byte_index;
 }
 
+template <typename T,
+          std::size_t N = detail::aggregate_arity<std::remove_cv_t<T>>::size(),
+          typename Container = std::vector<uint8_t>>
+std::size_t serialize(const T &s, Container &bytes) {
+  return serialize<options::default_options, T, N, Container>(s, bytes);
+}
+
+template <options O, typename T,
+          std::size_t N = detail::aggregate_arity<std::remove_cv_t<T>>::size(),
+          typename Container = std::tuple<>>
+std::size_t size_of(const T &s) {
+  auto empty_tuple = std::tuple<>();
+  return serialize<O, T, N, Container>(s, empty_tuple);
+}
+
+template <typename T,
+          std::size_t N = detail::aggregate_arity<std::remove_cv_t<T>>::size(),
+          typename Container = std::tuple<>>
+std::size_t size_of(const T &s) {
+  return size_of<options::default_options, T, N, Container>(s);
+}
+
+template <options O, typename T,
+          std::size_t N = detail::aggregate_arity<std::remove_cv_t<T>>::size(),
+          typename Container = std::tuple<>>
+typename std::enable_if<std::is_default_constructible<T>::value,
+                        std::size_t>::type
+size_of() {
+  return size_of<O, T, N, Container>(T());
+}
+
+template <typename T,
+          std::size_t N = detail::aggregate_arity<std::remove_cv_t<T>>::size(),
+          typename Container = std::tuple<>>
+typename std::enable_if<std::is_default_constructible<T>::value,
+                        std::size_t>::type
+size_of() {
+  return size_of<options::default_options, T, N, Container>();
+}
+
 namespace detail {
 
 // Start of deserialization functions
@@ -319,7 +349,7 @@ template <typename T,
           typename Container>
 void deserialize(T &s, Container &bytes, std::size_t &byte_index,
                  std::size_t &end_index, std::error_code &error_code) {
-  detail::deserialize_helper<options::none, T, N, Container, 0>(
+  detail::deserialize_helper<options::default_options, T, N, Container, 0>(
       s, bytes, byte_index, end_index, error_code);
 }
 

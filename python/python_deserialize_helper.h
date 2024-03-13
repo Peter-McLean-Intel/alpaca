@@ -159,7 +159,7 @@ py::list deserialize(const std::string &format,
   std::error_code error_code;
   std::size_t end_index = bytes.size();
 
-  constexpr auto OPTIONS = alpaca::options::none;
+  constexpr auto OPTIONS = alpaca::options::default_options;
 
   std::size_t index = 0;
 
